@@ -447,10 +447,7 @@ redden t =
       RBNode _ k v l r -> RBNode Red k v l r
 
 
-{-| Apply a function to all values in a dictionary.
-Notice that this function takes a function of type `comparable -> a -> a`,
-rather than Dict's `comparable a -> b`. If you want to provide a new default,
-see mapWithDefault -}
+{-| Apply a function to all values in a dictionary. -}
 map : (k -> a -> a) -> AllDict k a comparable -> AllDict k a comparable
 map f dict =
     case dict of

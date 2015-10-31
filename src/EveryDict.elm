@@ -27,7 +27,7 @@ equality with `(==)` is unreliable and should not be used.
 @docs empty, singleton, insert, update, remove
 
 # Query
-@docs isEmpty, member, get, size, getOrd, eq, fullEq
+@docs isEmpty, member, get, size, eq
 
 # Combine
 @docs union, intersect, diff
@@ -93,13 +93,13 @@ type EveryDict k v
 ord = toString
 
 
-{-| Create an empty dictionary using a given ord function to calculate hashes -}
+{-| Create an empty dictionary  -}
 empty : EveryDict k v
 empty =
     RBEmpty LBlack
 
 
-{-| Element equality. Does not check equality of base -}
+{-| Element equality -}
 eq : EveryDict k v -> EveryDict k v -> Bool
 eq first second =
     (toList first) == (toList second)
@@ -429,9 +429,7 @@ redden t =
 
 
 {-| Apply a function to all values in a dictionary.
-Notice that this function takes a function of type `comparable -> a -> a`,
-rather than Dict's `comparable a -> b`. If you want to provide a new default,
-see mapWithDefault -}
+-}
 map : (k -> a -> a) -> EveryDict k a -> EveryDict k a
 map f dict =
     case dict of
