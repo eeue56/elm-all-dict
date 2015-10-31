@@ -30,4 +30,22 @@ actionDict' =
         , (Hide, "Coward!")
         , (StandStill, "Err...")]
 
-main = show <| EveryDict.toList actionDict'
+
+type alias Dinosaur =
+    { name : String }
+
+dino = { name = "Hello" }
+
+eatBones : Int -> String
+eatBones x = toString x
+
+eatDogs : Int -> String
+eatDogs x = (toString x) ++ "::"
+
+
+dogDict =
+    EveryDict.fromList
+        [ (eatDogs, Run)
+        , (eatBones, Hide)]
+
+main = show <| EveryDict.get eatBones <|  dogDict

@@ -50,6 +50,8 @@ equality with `(==)` is unreliable and should not be used.
 import Dict as DeadDict
 
 import Basics exposing (..)
+
+import TrueToString
 import Maybe exposing (..)
 import List exposing (..)
 import Debug
@@ -90,7 +92,7 @@ type EveryDict k v
     = RBNode NColor k v (EveryDict k v) (EveryDict k v)
     | RBEmpty LeafColor
 
-ord = toString
+ord = TrueToString.toString
 
 
 {-| Create an empty dictionary  -}
