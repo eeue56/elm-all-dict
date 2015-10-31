@@ -3,6 +3,9 @@ module Main where
 import Graphics.Element exposing (show)
 import AllDict as Dict
 
+import EveryDict
+
+
 type Action = Run | Hide | StandStill
 
 ord : Action -> Int
@@ -20,4 +23,11 @@ actionDict =
         , (Hide, "Coward!")
         , (StandStill, "Err...")]
 
-main = show <| Dict.toList actionDict
+actionDict' : EveryDict.EveryDict Action String
+actionDict' =
+    EveryDict.fromList
+        [ (Run, "Run away!")
+        , (Hide, "Coward!")
+        , (StandStill, "Err...")]
+
+main = show <| EveryDict.toList actionDict'

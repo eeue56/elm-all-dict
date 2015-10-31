@@ -1,5 +1,9 @@
 # elm-all-dict
 
+This library provides two Dict implementations. Firstly, it provides `AllDict`, a dictionary which you may pass a hashing function in order to allow all types to be stored as keys.
+
+Secondly, it provides `EveryDict`, a dictionary which uses `toString` as a hashing function.
+
 This is a dictionary based off of core's Dict implementation, except it can support any type, rather than just `comparable`s. A function must be given which will hash the key into a `comparable`.
 
 ```elm
@@ -7,13 +11,11 @@ This is a dictionary based off of core's Dict implementation, except it can supp
 module Main where
 
 import Graphics.Element exposing (show)
-import AllDict as Dict
+import AllDict exposing (AllDict)
+import EveryDict exposing (EveryDict)
 
 type Action = Run | Hide | StandStill
 
--- The numbers could be anything here.
--- If they aren't unique, then the keys will be considered the "same"
--- This is usuful sometimes.
 ord : Action -> Int
 ord action =
     case action of
@@ -21,15 +23,20 @@ ord action =
         Hide -> 1
         StandStill -> 2
 
-actionDict : Dict.AllDict Action String Int
+actionDict : AllDict Action String Int
 actionDict =
-    Dict.fromList
+    AllDict.fromList
         ord
         [ (Run, "Run away!")
         , (Hide, "Coward!")
         , (StandStill, "Err...")]
 
-main = show <| Dict.toList actionDict
+actionDict' : EveryDict Action String
+actionDict' =
+    EveryDict.fromList
+        [ (Run, "Run away!")
+        , (Hide, "Coward!")
+        , (StandStill, "Err...")]
 
-
+main = show <| EveryDict.toList actionDict'
 ```
