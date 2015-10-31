@@ -14,8 +14,10 @@ module EveryDict
 {-| A dictionary mapping unique keys to values. This dictionary can use any type as a key.
 In the core-provided Dict, keys can only be comparable.
 
-This little dictionary is hacky. It uses toString as a hashing function - so don't use it on
-any types which have non-unique representations in strings!
+This little dictionary is hacky. It uses a custom toString as a hashing function - so don't use it on
+any types which have non-unique representations in strings! At the moment, it has custom support for converting functions into keys.
+
+It's hard to imagine many cases where you would want a function as a key, but it's now possible.
 
 Insert, remove, and query operations all take *O(log n)* time. EveryDictionary
 equality with `(==)` is unreliable and should not be used.
