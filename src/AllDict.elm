@@ -14,8 +14,44 @@ module AllDict
 {-| A dictionary mapping unique keys to values. This dictionary can use any type as a key.
 In the core-provided Dict, keys can only be comparable.
 
+AllDict allows you to provide a custom operation for hashing keys. The ord function has a type signature of `k -> comparable`.
+
+It's possible to define the ord function in such a way that AllDict can actually function as a DefaultDict.
+
+An example of this might be
+
+```
+ord : Action -> Int
+ord action =
+  case action of
+    Run -> 0
+    Hide -> 1
+    StandStill -> 2
+    _ -> 3
+```
+
+This will default any Action in the dictionary to 3. You can then set a default like so:
+
+```
+
+myDict : AllDict Action String Int
+myDict =
+  AllDict.fromList
+    ord
+    [(Noop, "Do nothing")]
+
+-- equal to `"Do nothing"`
+-- as `ord` maps anything outside of Run, Hide, StandStill
+-- to the same hash
+eat =
+  myDict |>
+    AllDict.get Eat
+
+```
+
 Insert, remove, and query operations all take *O(log n)* time. AllDictionary
-equality with `(==)` is unreliable and should not be used.
+equality with `(==)` is unreliable and should not be used. Instead, use AllDict.eq for element-wise comparisons,
+and AllDict.fullEq for a full comparison
 
 # Types
 @docs AllDict

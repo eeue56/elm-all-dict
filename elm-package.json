@@ -1,5 +1,5 @@
 {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "summary": "A Elm dict implementation that can store any type",
     "repository": "https://github.com/eeue56/elm-all-dict.git",
     "license": "BSD3",
@@ -10,9 +10,9 @@
         "AllDict",
         "EveryDict"
     ],
+    "native-modules": true,
     "dependencies": {
         "elm-lang/core": "2.1.0 <= v < 3.0.0"
     },
-    "native-modules" : true,
     "elm-version": "0.15.1 <= v < 0.16.0"
 }

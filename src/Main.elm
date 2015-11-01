@@ -1,7 +1,8 @@
 module Main where
 
 import Graphics.Element exposing (show)
-import AllDict as Dict
+import AllDict
+import Dict
 
 import EveryDict
 
@@ -15,9 +16,9 @@ ord action =
         Hide -> 1
         StandStill -> 2
 
-actionDict : Dict.AllDict Action String Int
+actionDict : AllDict.AllDict Action String Int
 actionDict =
-    Dict.fromList
+    AllDict.fromList
         ord
         [ (Run, "Run away!")
         , (Hide, "Coward!")
@@ -39,13 +40,22 @@ dino = { name = "Hello" }
 eatBones : Int -> String
 eatBones x = toString x
 
+durp x = toString x
+
 eatDogs : Int -> String
 eatDogs x = (toString x) ++ "::"
 
+banana =
+    Dict.fromList
+        [ ("k", "v") ]
+
+orange =
+    Dict.fromList
+        [ ("l", "m") ]
 
 dogDict =
     EveryDict.fromList
-        [ (eatDogs, Run)
-        , (eatBones, Hide)]
+        [ (banana, Run)
+        , (orange, StandStill) ]
 
-main = show <| EveryDict.get eatBones <|  dogDict
+main = show <| EveryDict.get banana <|  dogDict
