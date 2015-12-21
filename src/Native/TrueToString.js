@@ -13,7 +13,6 @@ Elm.Native.TrueToString.make = function(localRuntime) {
 
     var toString = function(v){
         if (typeof v === "function"){
-            console.log("here", v, v.toString());
             return v.toString();
         }
 

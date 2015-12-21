@@ -53,7 +53,8 @@ import Dict as DeadDict
 
 import Basics exposing (..)
 
-import TrueToString
+-- uncomment this if you want to use native toString instead for storing functions as keys
+--import TrueToString
 import Maybe exposing (..)
 import List exposing (..)
 import Debug
@@ -91,16 +92,16 @@ showLColor color =
 
 {-| A dict which works with any type which lifts the type from Core's Dict-}
 type EveryDict k v
-    = RBNode NColor k v (EveryDict k v) (EveryDict k v)
-    | RBEmpty LeafColor
+    = RBNode_elm_builtin NColor k v (EveryDict k v) (EveryDict k v)
+    | RBEmpty_elm_builtin LeafColor
 
-ord = TrueToString.toString
+ord = toString
 
 
 {-| Create an empty dictionary  -}
 empty : EveryDict k v
 empty =
-    RBEmpty LBlack
+    RBEmpty_elm_builtin LBlack
 
 
 {-| Element equality -}
@@ -111,34 +112,34 @@ eq first second =
 min : EveryDict k v -> (k,v)
 min dict =
     case dict of
-      RBNode _ key value (RBEmpty LBlack) _ ->
+      RBNode_elm_builtin _ key value (RBEmpty_elm_builtin LBlack) _ ->
           (key, value)
 
-      RBNode _ _ _ left _ ->
+      RBNode_elm_builtin _ _ _ left _ ->
           min left
 
-      RBEmpty LBlack ->
+      RBEmpty_elm_builtin _ ->
           Debug.crash "(min Empty) is not defined"
 
 max : EveryDict k v -> (k, v)
 max dict =
     case dict of
-      RBNode _ key value _ (RBEmpty _) ->
+      RBNode_elm_builtin _ key value _ (RBEmpty_elm_builtin _) ->
           (key, value)
 
-      RBNode _ _ _ _ right ->
+      RBNode_elm_builtin _ _ _ _ right ->
           max right
 
-      RBEmpty _ ->
+      RBEmpty_elm_builtin _ ->
           Debug.crash "(max Empty) is not defined"
 
 get' : k -> EveryDict k v -> Maybe v
 get' targetKey dict =
     case dict of
-      RBEmpty LBlack ->
+      RBEmpty_elm_builtin _ ->
           Nothing
 
-      RBNode _ key value left right ->
+      RBNode_elm_builtin _ key value left right ->
           case compare (ord targetKey) (ord key) of
             LT -> get' targetKey left
             EQ -> Just value
@@ -175,7 +176,7 @@ member key dict =
 isEmpty : EveryDict k v -> Bool
 isEmpty dict =
     case dict of
-      RBEmpty _ -> True
+      RBEmpty_elm_builtin _ -> True
       _ -> False
 
 {-| Get the number of key-value pairs in a dict -}
@@ -186,23 +187,27 @@ size dict =
 sizeHelp : Int -> EveryDict k v -> Int
 sizeHelp n dict =
   case dict of
-    RBEmpty _ ->
+    RBEmpty_elm_builtin _ ->
       n
 
-    RBNode _ _ _ left right ->
+    RBNode_elm_builtin _ _ _ left right ->
       sizeHelp (sizeHelp (n+1) right) left
 
 ensureBlackRoot : EveryDict k v -> EveryDict k v
 ensureBlackRoot dict =
     case dict of
-      RBNode Red key value left right ->
-          RBNode Black key value left right
+      RBNode_elm_builtin Red key value left right ->
+          RBNode_elm_builtin Black key value left right
 
-      RBNode Black _ _ _ _ ->
+      RBNode_elm_builtin Black _ _ _ _ ->
           dict
 
-      RBEmpty LBlack ->
+      RBEmpty_elm_builtin _ ->
           dict
+
+      _ ->
+          dict
+
 
 
 {-| Insert a key-value pair into a dictionary. Replaces value when there is
@@ -234,30 +239,30 @@ update k alter dict =
   let
       up dict =
           case dict of
-            RBEmpty LBlack ->
+            RBEmpty_elm_builtin _ ->
                 case alter Nothing of
                   Nothing -> (Same, empty)
-                  Just v  -> (Insert, RBNode Red k v empty empty)
+                  Just v  -> (Insert, RBNode_elm_builtin Red k v empty empty)
 
-            RBNode clr key value left right ->
+            RBNode_elm_builtin clr key value left right ->
                 case compare (ord k) (ord key) of
                   EQ ->
                     case alter (Just value) of
                       Nothing -> (Remove, rem clr left right)
                       Just newValue ->
-                          (Same, RBNode clr key newValue left right)
+                          (Same, RBNode_elm_builtin clr key newValue left right)
 
                   LT ->
                     let (flag, newLeft) = up left in
                     case flag of
-                      Same   -> (Same, RBNode clr key value newLeft right)
+                      Same   -> (Same, RBNode_elm_builtin clr key value newLeft right)
                       Insert -> (Insert, balance clr key value newLeft right)
                       Remove -> (Remove, bubble clr key value newLeft right)
 
                   GT ->
                     let (flag, newRight) = up right in
                     case flag of
-                      Same   -> (Same, RBNode clr key value left newRight)
+                      Same   -> (Same, RBNode_elm_builtin clr key value left newRight)
                       Insert -> (Insert, balance clr key value left newRight)
                       Remove -> (Remove, bubble clr key value left newRight)
 
@@ -278,8 +283,8 @@ singleton key value =
 isBBlack : EveryDict k v -> Bool
 isBBlack dict =
     case dict of
-      RBNode BBlack _ _ _ _ -> True
-      RBEmpty LBBlack -> True
+      RBNode_elm_builtin BBlack _ _ _ _ -> True
+      RBEmpty_elm_builtin LBBlack -> True
       _ -> False
 
 
@@ -304,8 +309,9 @@ lessBlack color =
 lessBlackTree : EveryDict k v -> EveryDict k v
 lessBlackTree dict =
     case dict of
-      RBNode c k v l r -> RBNode (lessBlack c) k v l r
-      RBEmpty LBBlack -> RBEmpty LBlack
+      RBNode_elm_builtin c k v l r -> RBNode_elm_builtin (lessBlack c) k v l r
+      RBEmpty_elm_builtin LBBlack -> RBEmpty_elm_builtin LBlack
+      _ -> dict
 
 
 reportRemBug : String -> NColor -> String -> String -> a
@@ -322,31 +328,34 @@ reportRemBug msg c lgot rgot =
 rem : NColor -> EveryDict k v -> EveryDict k v -> EveryDict k v
 rem c l r =
     case (l, r) of
-      (RBEmpty _, RBEmpty _) ->
+      (RBEmpty_elm_builtin _, RBEmpty_elm_builtin _) ->
           case c of
-            Red   -> RBEmpty LBlack
-            Black -> RBEmpty LBBlack
+            Red   -> RBEmpty_elm_builtin LBlack
+            Black -> RBEmpty_elm_builtin LBBlack
 
-      (RBEmpty cl, RBNode cr k' v' l' r') ->
+            _ ->
+                Native.Debug.crash "cannot have bblack or nblack nodes at this point"
+
+      (RBEmpty_elm_builtin cl, RBNode_elm_builtin cr k' v' l' r') ->
           case (c, cl, cr) of
             (Black, LBlack, Red) ->
-                RBNode Black k' v' l' r'
+                RBNode_elm_builtin Black k' v' l' r'
 
             _ ->
                 reportRemBug "Black/LBlack/Red" c (showLColor cl) (showNColor cr)
 
-      (RBNode cl k' v' l' r', RBEmpty cr) ->
+      (RBNode_elm_builtin cl k' v' l' r', RBEmpty_elm_builtin cr) ->
           case (c, cl, cr) of
             (Black, Red, LBlack) ->
-                RBNode Black k' v' l' r'
+                RBNode_elm_builtin Black k' v' l' r'
 
             _ ->
                 reportRemBug "Black/Red/LBlack" c (showNColor cl) (showLColor cr)
 
-      -- l and r are both RBNodes
-      (RBNode cl kl vl ll rl, RBNode cr kr vr lr rr) ->
-          let l = RBNode cl kl vl ll rl
-              r = RBNode cr kr vr lr rr
+      -- l and r are both RBNode_elm_builtins
+      (RBNode_elm_builtin cl kl vl ll rl, RBNode_elm_builtin cr kr vr lr rr) ->
+          let l = RBNode_elm_builtin cl kl vl ll rl
+              r = RBNode_elm_builtin cr kr vr lr rr
               (k, v) = max l
               l'     = remove_max cl kl vl ll rl
           in
@@ -358,59 +367,59 @@ bubble : NColor -> k -> v -> EveryDict k v -> EveryDict k v -> EveryDict k v
 bubble c k v l r =
     if isBBlack l || isBBlack r
         then balance (moreBlack c) k v (lessBlackTree l) (lessBlackTree r)
-        else RBNode c k v l r
+        else RBNode_elm_builtin c k v l r
 
 
 -- Removes rightmost node, may leave root as BBlack
 remove_max : NColor -> k -> v -> EveryDict k v -> EveryDict k v -> EveryDict k v
 remove_max c k v l r =
     case r of
-      RBEmpty _ ->
+      RBEmpty_elm_builtin _ ->
           rem c l r
 
-      RBNode cr kr vr lr rr ->
+      RBNode_elm_builtin cr kr vr lr rr ->
           bubble c k v l (remove_max cr kr vr lr rr)
 
 
 -- generalized tree balancing act
 balance : NColor -> k -> v -> EveryDict k v -> EveryDict k v -> EveryDict k v
 balance c k v l r =
-    balance_node (RBNode c k v l r)
+    balance_node (RBNode_elm_builtin c k v l r)
 
 
 blackish : EveryDict k v -> Bool
 blackish t =
     case t of
-      RBNode c _ _ _ _ -> c == Black || c == BBlack
-      RBEmpty _      -> True
+      RBNode_elm_builtin c _ _ _ _ -> c == Black || c == BBlack
+      RBEmpty_elm_builtin _      -> True
 
 
 balance_node : EveryDict k v -> EveryDict k v
 balance_node t =
   let assemble col xk xv yk yv zk zv a b c d =
-        RBNode (lessBlack col) yk yv (RBNode Black xk xv a b) (RBNode Black zk zv c d)
+        RBNode_elm_builtin (lessBlack col) yk yv (RBNode_elm_builtin Black xk xv a b) (RBNode_elm_builtin Black zk zv c d)
   in
    if blackish t
    then case t of
-     RBNode col zk zv (RBNode Red yk yv (RBNode Red xk xv a b) c) d ->
+     RBNode_elm_builtin col zk zv (RBNode_elm_builtin Red yk yv (RBNode_elm_builtin Red xk xv a b) c) d ->
        assemble col xk xv yk yv zk zv a b c d
-     RBNode col zk zv (RBNode Red xk xv a (RBNode Red yk yv b c)) d ->
+     RBNode_elm_builtin col zk zv (RBNode_elm_builtin Red xk xv a (RBNode_elm_builtin Red yk yv b c)) d ->
        assemble col xk xv yk yv zk zv a b c d
-     RBNode col xk xv a (RBNode Red zk zv (RBNode Red yk yv b c) d) ->
+     RBNode_elm_builtin col xk xv a (RBNode_elm_builtin Red zk zv (RBNode_elm_builtin Red yk yv b c) d) ->
        assemble col xk xv yk yv zk zv a b c d
-     RBNode col xk xv a (RBNode Red yk yv b (RBNode Red zk zv c d)) ->
+     RBNode_elm_builtin col xk xv a (RBNode_elm_builtin Red yk yv b (RBNode_elm_builtin Red zk zv c d)) ->
        assemble col xk xv yk yv zk zv a b c d
 
-     RBNode BBlack xk xv a (RBNode NBlack zk zv (RBNode Black yk yv b c) d) ->
+     RBNode_elm_builtin BBlack xk xv a (RBNode_elm_builtin NBlack zk zv (RBNode_elm_builtin Black yk yv b c) d) ->
        case d of
-         (RBNode Black _ _ _ _) ->
-           RBNode Black yk yv (RBNode Black xk xv a b) (balance Black zk zv c (redden d))
+         (RBNode_elm_builtin Black _ _ _ _) ->
+           RBNode_elm_builtin Black yk yv (RBNode_elm_builtin Black xk xv a b) (balance Black zk zv c (redden d))
          _ -> t
 
-     RBNode BBlack zk zv (RBNode NBlack xk xv a (RBNode Black yk yv b c)) d ->
+     RBNode_elm_builtin BBlack zk zv (RBNode_elm_builtin NBlack xk xv a (RBNode_elm_builtin Black yk yv b c)) d ->
        case a of
-         (RBNode Black _ _ _ _) ->
-           RBNode Black yk yv (balance Black xk xv (redden a) b) (RBNode Black zk zv c d)
+         (RBNode_elm_builtin Black _ _ _ _) ->
+           RBNode_elm_builtin Black yk yv (balance Black xk xv (redden a) b) (RBNode_elm_builtin Black zk zv c d)
          _ -> t
      _ -> t
    else t
@@ -420,16 +429,16 @@ balance_node t =
 blacken : EveryDict k v -> EveryDict k v
 blacken t =
     case t of
-      RBEmpty _ -> RBEmpty LBlack
-      RBNode _ k v l r -> RBNode Black k v l r
+      RBEmpty_elm_builtin _ -> RBEmpty_elm_builtin LBlack
+      RBNode_elm_builtin _ k v l r -> RBNode_elm_builtin Black k v l r
 
 
 -- make the top node red
 redden : EveryDict k v -> EveryDict k v
 redden t =
     case t of
-      RBEmpty _ -> Debug.crash "can't make a Leaf red"
-      RBNode _ k v l r -> RBNode Red k v l r
+      RBEmpty_elm_builtin _ -> Debug.crash "can't make a Leaf red"
+      RBNode_elm_builtin _ k v l r -> RBNode_elm_builtin Red k v l r
 
 
 {-| Apply a function to all values in a dictionary.
@@ -437,20 +446,20 @@ redden t =
 map : (k -> a -> a) -> EveryDict k a -> EveryDict k a
 map f dict =
     case dict of
-      RBEmpty LBlack ->
+      RBEmpty_elm_builtin _ ->
           dict
 
-      RBNode clr key value left right ->
-          RBNode clr key (f key value) (map f left) (map f right)
+      RBNode_elm_builtin clr key value left right ->
+          RBNode_elm_builtin clr key (f key value) (map f left) (map f right)
 
 {-| Fold over the key-value pairs in a dictionary, in order from lowest
 key to highest key. -}
 foldl : (k -> v -> b -> b) -> b -> EveryDict k v -> b
 foldl f acc dict =
     case dict of
-      RBEmpty LBlack -> acc
+      RBEmpty_elm_builtin _ -> acc
 
-      RBNode _ key value left right ->
+      RBNode_elm_builtin _ key value left right ->
           foldl f (f key value (foldl f acc left)) right
 
 
@@ -459,9 +468,9 @@ key to lowest key. -}
 foldr : (k -> v -> b -> b) -> b -> EveryDict k v -> b
 foldr f acc t =
     case t of
-      RBEmpty LBlack -> acc
+      RBEmpty_elm_builtin _ -> acc
 
-      RBNode _ key value left right ->
+      RBNode_elm_builtin _ key value left right ->
           foldr f (f key value (foldr f acc right)) left
 
 
