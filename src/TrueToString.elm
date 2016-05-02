@@ -1,4 +1,4 @@
-module TrueToString (toString) where
+module TrueToString exposing (toString)
 
 import Native.TrueToString
 

@@ -1,4 +1,4 @@
-module AllDict
+module AllDict exposing
     ( AllDict
     , empty, singleton, insert, update
     , get, remove, member, getOrd
@@ -9,7 +9,7 @@ module AllDict
     , union, intersect, diff
     , keys, values
     , toList, fromList
-    ) where
+    )
 
 {-| A dictionary mapping unique keys to values. This dictionary can use any type as a key.
 In the core-provided Dict, keys can only be comparable.

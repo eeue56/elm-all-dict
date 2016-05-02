@@ -1,4 +1,4 @@
-module EveryDict
+module EveryDict exposing
     ( EveryDict
     , empty, singleton, insert, update
     , get, remove, member
@@ -9,7 +9,7 @@ module EveryDict
     , union, intersect, diff
     , keys, values
     , toList, fromList
-    ) where
+    )
 
 {-| A dictionary mapping unique keys to values. This dictionary can use any type as a key.
 In the core-provided Dict, keys can only be comparable.
