@@ -443,11 +443,11 @@ redden t =
 
 {-| Apply a function to all values in a dictionary.
 -}
-map : (k -> a -> a) -> EveryDict k a -> EveryDict k a
+map : (k -> a -> b) -> EveryDict k a -> EveryDict k b
 map f dict =
     case dict of
       RBEmpty_elm_builtin _ ->
-          dict
+          empty
 
       RBNode_elm_builtin clr key value left right ->
           RBNode_elm_builtin clr key (f key value) (map f left) (map f right)
