@@ -489,11 +489,11 @@ redden t =
 
 
 {-| Apply a function to all values in a dictionary. -}
-map : (k -> a -> a) -> AllDict k a comparable -> AllDict k a comparable
+map : (k -> a -> b) -> AllDict k a comparable -> AllDict k b comparable
 map f dict =
     case dict of
-      RBEmpty_elm_builtin _ ord ->
-          dict
+      RBEmpty_elm_builtin clr ord ->
+          RBEmpty_elm_builtin clr ord
 
       RBNode_elm_builtin clr key value left right ->
           RBNode_elm_builtin clr key (f key value) (map f left) (map f right)
