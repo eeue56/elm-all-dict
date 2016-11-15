@@ -44,12 +44,10 @@ main = show <| EveryDict.toList actionDict2
 
 ## EveryDict
 
-EveryDict is special. It uses a custom implementation of `toString` in order to allow functions to be used as keys. The current implementation of `toString` doesn't actually work properly when functions are defined in the format
+EveryDict uses a custom implementation of `toString` in order to allow functions to be used as keys. The current implementation of `toString` doesn't actually work properly when functions are defined in the format
 
 ```javascript
 var f = function() ...
 ```
 
 This is down to the fact `toString` uses the `.name` of the functions - this is obviously not defined when using the variable binding to anonymous functions that is common in JS.
-
-I'm not sure if I can recommend this for use in production or not. It seems pretty breakable and dodgy, but maybe it's not.
