@@ -95,6 +95,7 @@ type EveryDict k v
     = RBNode_elm_builtin NColor k v (EveryDict k v) (EveryDict k v)
     | RBEmpty_elm_builtin LeafColor
 
+ord : a -> String
 ord = toString
 
 
@@ -133,17 +134,17 @@ max dict =
       RBEmpty_elm_builtin _ ->
           Debug.crash "(max Empty) is not defined"
 
-get' : k -> EveryDict k v -> Maybe v
-get' targetKey dict =
+get_ : k -> EveryDict k v -> Maybe v
+get_ targetKey dict =
     case dict of
       RBEmpty_elm_builtin _ ->
           Nothing
 
       RBNode_elm_builtin _ key value left right ->
           case compare (ord targetKey) (ord key) of
-            LT -> get' targetKey left
+            LT -> get_ targetKey left
             EQ -> Just value
-            GT -> get' targetKey right
+            GT -> get_ targetKey right
 
 {-| Get the value associated with a key. If the key is not found, return
 `Nothing`. This is useful when you are not sure if a key will be in the
@@ -158,13 +159,13 @@ dictionary.
 -}
 get : k -> EveryDict k v -> Maybe v
 get targetKey dict =
-    get' targetKey dict
+    get_ targetKey dict
 
 
 {-| Determine if a key is in a dictionary. -}
 member : k -> EveryDict k v -> Bool
 member key dict =
-    case get' key dict of
+    case get_ key dict of
       Just _ -> True
       Nothing -> False
 
@@ -336,18 +337,18 @@ rem c l r =
             _ ->
                 Native.Debug.crash "cannot have bblack or nblack nodes at this point"
 
-      (RBEmpty_elm_builtin cl, RBNode_elm_builtin cr k' v' l' r') ->
+      (RBEmpty_elm_builtin cl, RBNode_elm_builtin cr k_ v_ l_ r_) ->
           case (c, cl, cr) of
             (Black, LBlack, Red) ->
-                RBNode_elm_builtin Black k' v' l' r'
+                RBNode_elm_builtin Black k_ v_ l_ r_
 
             _ ->
                 reportRemBug "Black/LBlack/Red" c (showLColor cl) (showNColor cr)
 
-      (RBNode_elm_builtin cl k' v' l' r', RBEmpty_elm_builtin cr) ->
+      (RBNode_elm_builtin cl k_ v_ l_ r_, RBEmpty_elm_builtin cr) ->
           case (c, cl, cr) of
             (Black, Red, LBlack) ->
-                RBNode_elm_builtin Black k' v' l' r'
+                RBNode_elm_builtin Black k_ v_ l_ r_
 
             _ ->
                 reportRemBug "Black/Red/LBlack" c (showNColor cl) (showLColor cr)
@@ -357,9 +358,9 @@ rem c l r =
           let l = RBNode_elm_builtin cl kl vl ll rl
               r = RBNode_elm_builtin cr kr vr lr rr
               (k, v) = max l
-              l'     = remove_max cl kl vl ll rl
+              l_     = remove_max cl kl vl ll rl
           in
-              bubble c k v l' r
+              bubble c k v l_ r
 
 
 -- Kills a BBlack or moves it upward, may leave behind NBlack
@@ -485,7 +486,7 @@ union t1 t2 =
 Preference is given to values in the first dictionary. -}
 intersect : EveryDict k v -> EveryDict k v -> EveryDict k v
 intersect t1 t2 =
-    filter (\k _ -> k `member` t2) t1
+    filter (\k _ -> member k t2) t1
 
 
 {-| Keep a key-value pair when its key does not appear in the second dictionary.

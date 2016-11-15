@@ -164,8 +164,8 @@ max dict =
       RBEmpty_elm_builtin _ _ ->
           Debug.crash "(max Empty) is not defined"
 
-get' : k -> AllDict k v comparable -> Maybe v
-get' targetKey dict =
+getHelper : k -> AllDict k v comparable -> Maybe v
+getHelper targetKey dict =
     let
       ord = getOrd dict
     in
@@ -175,9 +175,9 @@ get' targetKey dict =
 
         RBNode_elm_builtin _ key value left right ->
             case compare (ord targetKey) (ord key) of
-              LT -> get' targetKey left
+              LT -> getHelper targetKey left
               EQ -> Just value
-              GT -> get' targetKey right
+              GT -> getHelper targetKey right
 
 {-| Helper function for grabbing the default value used in the dict
 -}
@@ -203,13 +203,13 @@ dictionary.
 -}
 get : k -> AllDict k v comparable -> Maybe v
 get targetKey dict =
-    get' targetKey dict
+    getHelper targetKey dict
 
 
 {-| Determine if a key is in a dictionary. -}
 member : k -> AllDict k v comparable -> Bool
 member key dict =
-    case get' key dict of
+    case getHelper key dict of
       Just _ -> True
       Nothing -> False
 
@@ -281,14 +281,14 @@ update k alter dict =
 
       ord =
           getOrd dict
-      empty' =
+      empty_ =
           empty ord
       up dict =
           case dict of
             RBEmpty_elm_builtin _ _ ->
                 case alter Nothing of
-                  Nothing -> (Same, empty')
-                  Just v  -> (Insert, RBNode_elm_builtin Red k v empty' empty')
+                  Nothing -> (Same, empty_)
+                  Just v  -> (Insert, RBNode_elm_builtin Red k v empty_ empty_)
 
             RBNode_elm_builtin clr key value left right ->
                 case compare (ord k) (ord key) of
@@ -383,18 +383,18 @@ rem c l r =
                 Native.Debug.crash "cannot have bblack or nblack nodes at this point"
 
 
-      (RBEmpty_elm_builtin cl v, RBNode_elm_builtin cr k' v' l' r') ->
+      (RBEmpty_elm_builtin cl v, RBNode_elm_builtin cr k_ v_ l_ r_) ->
           case (c, cl, cr) of
             (Black, LBlack, Red) ->
-                RBNode_elm_builtin Black k' v' l' r'
+                RBNode_elm_builtin Black k_ v_ l_ r_
 
             _ ->
                 reportRemBug "Black/LBlack/Red" c (showLColor cl) (showNColor cr)
 
-      (RBNode_elm_builtin cl k' v' l' r', RBEmpty_elm_builtin cr v) ->
+      (RBNode_elm_builtin cl k_ v_ l_ r_, RBEmpty_elm_builtin cr v) ->
           case (c, cl, cr) of
             (Black, Red, LBlack) ->
-                RBNode_elm_builtin Black k' v' l' r'
+                RBNode_elm_builtin Black k_ v_ l_ r_
 
             _ ->
                 reportRemBug "Black/Red/LBlack" c (showNColor cl) (showLColor cr)
@@ -404,9 +404,9 @@ rem c l r =
           let l = RBNode_elm_builtin cl kl vl ll rl
               r = RBNode_elm_builtin cr kr vr lr rr
               (k, v) = max l
-              l'     = remove_max cl kl vl ll rl
+              l_     = remove_max cl kl vl ll rl
           in
-              bubble c k v l' r
+              bubble c k v l_ r
 
 
 -- Kills a BBlack or moves it upward, may leave behind NBlack
@@ -531,7 +531,7 @@ union t1 t2 =
 Preference is given to values in the first dictionary. -}
 intersect : AllDict k v comparable -> AllDict k v comparable -> AllDict k v comparable
 intersect t1 t2 =
-    filter (\k _ -> k `member` t2) t1
+    filter (\k _ -> member k t2) t1
 
 
 {-| Keep a key-value pair when its key does not appear in the second dictionary.
