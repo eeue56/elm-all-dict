@@ -31,14 +31,14 @@ actionDict =
         , (Hide, "Coward!")
         , (StandStill, "Err...")]
 
-actionDict' : EveryDict Action String
-actionDict' =
+actionDict2 : EveryDict Action String
+actionDict2 =
     EveryDict.fromList
         [ (Run, "Run away!")
         , (Hide, "Coward!")
         , (StandStill, "Err...")]
 
-main = show <| EveryDict.toList actionDict'
+main = show <| EveryDict.toList actionDict2
 ```
 
 
