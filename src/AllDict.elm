@@ -130,15 +130,50 @@ empty ord =
     RBEmpty_elm_builtin LBlack ord
 
 
-{-| Element equality. Does not check equality of base -}
+{-| Element equality. Does not check equality of base, and assumes that `==`
+is reliable for `k`.
+-}
 eq : AllDict k v comparable -> AllDict k v comparable -> Bool
 eq first second =
+    -- It would be nice to use the `ord` function, rather than relying on `==`
+    -- for the `k` type, since we have no guarantee that `==` is reliable for
+    -- `k`.  However, we also have no guarantee that the two dicts are using
+    -- the same `ord` function. So, this may be the best we can do, especially
+    -- since we also have `fullEq`, which is advertised to consider the `ord`
+    -- function as well.
     (toList first) == (toList second)
 
 {-| Base + element equality -}
 fullEq : AllDict k v comparable -> AllDict k v comparable -> Bool
 fullEq first second =
-    (toList first == toList second) && (getOrd first == getOrd second)
+    -- This used to just do `eq` and then also consider whether the two
+    -- `ord` functions are referentially equal. However, this was both two
+    -- little and too much.
+    --
+    -- It was too little, because it assumed that `==` was reliable for the `k`
+    -- type, which is not always the case. Plus, we have been supplied an `ord`
+    -- function which must produce values that are reliable for `==`, so we may
+    -- as well use it!
+    --
+    -- It was too much, because the two `ord` functions might be equivalent,
+    -- even though they are not referentially equal. Now, ordinarily there
+    -- would be no way to determine that. However, here it is easy, becasue we
+    -- have a limited domain ... each dict has only so many keys, and we're
+    -- going to have to check them anyway. So, we can just apply the two `ord`
+    -- functions to the keys that are present ... if the results are equal,
+    -- then the functions are equal for present purposes. (Of course, that
+    -- doesn't guarantee that the functions are equal for other keys, which are
+    -- not present, but we're determining equality for these two dicts as
+    -- presently composed, not some future dicts).
+    let
+        firstWithOrd =
+            List.map (Tuple.mapFirst (getOrd first)) (toList first)
+
+        secondWithOrd =
+            List.map (Tuple.mapFirst (getOrd second)) (toList second)
+    in
+        firstWithOrd == secondWithOrd
+
 
 min : AllDict k v comparable -> (k,v)
 min dict =
